@@ -27,28 +27,34 @@ app.layout = html.Div(children=[
                              id="DropdownAções")
             ])
 
-        ], sm=2),
+        ], sm=1),
         dbc.Col([
-            dcc.Graph(id="Grafico")
-        ], sm=10)
+            dbc.Row([dcc.Graph(id="Grafico")]),
+            dbc.Row([dcc.Graph(id="Grafico2")])
+        ], sm=11)
     ])
 ])
 
 
-@app.callback(Output("Grafico", "figure"),
+
+@app.callback([Output("Grafico", "figure"),
+               Output("Grafico2", "figure")],
               [Input("DropdownAções", "value")])
 
 def fun(Acao):
     tz = pytz.timezone("America/New_York")
     start = tz.localize(dt(2013, 1, 1))
-    end = tz.localize(dt(2023, 11, 15))
+    end = tz.localize(dt(2023, 11, 16))
     df = yf.download(Acao, start, end, auto_adjust=True)["Close"]
     df = pd.DataFrame(df).reset_index()
     df.columns = ["Data", "Fechamento"]
+    da = yf.Ticker(Acao).history(period="max")
+
 
     fig_evolucao = px.line(df, x="Data", y="Fechamento")
+    fig_ganho = px.line(da, x=da.index, y="Dividends")
 
-    return fig_evolucao
+    return fig_evolucao, fig_ganho
 
 
 if __name__ == "__main__":
